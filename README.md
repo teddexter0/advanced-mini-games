@@ -1,2 +1,2 @@
 # advanced-mini-games
-Dex Arcade: standalone browser games, united in one public collection.
+Arcade-like: standalone browser games, united in one public collection.
