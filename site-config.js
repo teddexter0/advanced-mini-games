@@ -1,1 +1,1 @@
-export default {"game":null,"hubURL":"https://advanced-mini-games.vercel.app","release":"2026-11-02"};
+export default {"game":null,"hubURL":"https://advanced-mini-games.vercel.app","release":"2026-11-04"};
