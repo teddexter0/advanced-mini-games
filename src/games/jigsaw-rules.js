@@ -1,4 +1,4 @@
-export const puzzleTiers=[{count:100,cols:10,rows:10},{count:300,cols:20,rows:15},{count:500,cols:25,rows:20},{count:1000,cols:40,rows:25},{count:1500,cols:50,rows:30},{count:2000,cols:50,rows:40},{count:3000,cols:60,rows:50}];
+export const puzzleTiers=[{count:24,cols:6,rows:4},{count:48,cols:8,rows:6},{count:100,cols:10,rows:10},{count:300,cols:20,rows:15},{count:500,cols:25,rows:20},{count:1000,cols:40,rows:25},{count:1500,cols:50,rows:30},{count:2000,cols:50,rows:40},{count:3000,cols:60,rows:50}];
 export function makeJigsaw(cols,rows,seed=19){
   const sign=(a,b)=>((a*73856093^b*19349663^seed)>>>0)%2?1:-1;
   return Array.from({length:cols*rows},(_,id)=>{const x=id%cols,y=Math.floor(id/cols);return{id,x,y,edges:[y===0?0:-sign(x,y-1),x===cols-1?0:sign(x,y+1000),y===rows-1?0:sign(x,y),x===0?0:-sign(x-1,y+1000)]};});

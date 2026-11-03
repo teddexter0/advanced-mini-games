@@ -56,10 +56,10 @@ export function land(s,cardIndex){prepareEstate(s);const p=s.players[s.turn],t=s
     else if(card.cash<0)transfer(s,-card.cash);else p.cash+=card.cash;
   }
 }
-export function rollEstate(s,d1,d2,card){if(s.phase!=='roll'||s.winner!==null)return false;if(![d1,d2].every(n=>Number.isInteger(n)&&n>=1&&n<=6))return false;const p=s.players[s.turn],double=d1===d2;s.lastDice=d1+d2;s.extra=double;record(s,`${p.name} rolls ${d1} + ${d2}.`);
+export function rollEstate(s,d1,d2,card,onAdvance){if(s.phase!=='roll'||s.winner!==null)return false;if(![d1,d2].every(n=>Number.isInteger(n)&&n>=1&&n<=6))return false;const p=s.players[s.turn],double=d1===d2;s.lastDice=d1+d2;s.extra=double;record(s,`${p.name} rolls ${d1} + ${d2}.`);
   if(p.jailed){p.jail++;s.extra=false;if(double){p.jailed=false;p.jail=0;}else if(p.jail<3){s.phase='end';return true;}else{p.jailed=false;p.jail=0;transfer(s,50);if(s.phase==='debt'){s.pending={move:s.lastDice,card};return true;}}}
   else{s.doubles=double?s.doubles+1:0;if(s.doubles===3){jail(s);return true;}}
-  advance(s,s.lastDice);land(s,card);return true;
+  const origin=p.pos;advance(s,s.lastDice);onAdvance?.(origin,s.lastDice);land(s,card);return true;
 }
 export function buyEstate(s){if(s.phase!=='purchase')return false;const t=s.tiles[s.pending],p=s.players[s.turn];if(p.cash<t.price)return false;p.cash-=t.price;t.owner=s.turn;s.pending=null;s.phase='end';record(s,`${p.name} buys ${t.name}.`,'purchase');return true;}
 export function nextEstate(s){if(s.phase!=='end'||s.winner!==null||s.auctionQueue?.length)return false;if(s.extra&&!s.players[s.turn].out){s.phase='roll';s.extra=false;return true;}do{s.turn=(s.turn+1)%s.players.length;}while(s.players[s.turn].out);s.doubles=0;s.phase='roll';s.extra=false;s.pending=null;return true;}

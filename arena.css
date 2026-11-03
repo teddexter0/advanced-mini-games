@@ -300,3 +300,42 @@
   .estate-viewport.overview .monopoly-wrap { width: min(100%,calc((100dvh - 250px) * .75)); }
 }
 
+
+.hop-stage .jump-field { flex: 1 0 160px; min-height: 160px; }
+.hop-stage > *:not(.jump-field) { flex-shrink: 0; }
+.hop-stage .hop-meter {
+  position: relative;
+  height: 32px;
+  margin-block: 4px;
+  border: 2px solid #879cae;
+  border-radius: 8px;
+  background: #122239;
+  overflow: visible;
+}
+.hop-meter .progress-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg,#36b7ff,#57e784,#ffad38); }
+.hop-meter-target {
+  position: absolute; inset: 0 auto 0 80%; transform: translateX(-50%);
+  display: grid; place-items: center; padding: 0 4px;
+  border-inline: 2px solid #ffe343; color: #fff;
+  background: #302605; font-weight: 800; pointer-events: none;
+}
+.estate-stage { position: relative; }
+.estate-stage .estate-card {
+  position: absolute; z-index: 9; top: 36%; left: 50%; transform: translate(-50%,-25%);
+  width: min(88%,380px); padding: 16px; border: 1px solid #f5d47b;
+  border-radius: 14px; background: #101b30f5; color: #fef6dc;
+  box-shadow: 0 14px 45px #0009;
+}
+.estate-card > button { float: right; font-size: .8rem; }
+.estate-card h3 { clear: both; margin: 4px 0; font-size: 1.35rem; }
+.estate-card small { color: #f3d97d; letter-spacing: .13em; }
+.estate-moving-token {
+  display: none; position: absolute; z-index: 7;
+  transform: translate(-50%,-65%); transition: left 210ms linear,top 210ms linear;
+  pointer-events: none; border: 2px solid #ffdc67; border-radius: 50%;
+  background: #151b2b; color: #ffe67f; font-size: 24px; padding: 1px 9px;
+  box-shadow: 0 0 20px #ffcf58;
+}
+.estate-moving-token.moving { display: block; }
+.estate-stage .monopoly-wrap .route-lit { outline: 3px solid #ffd966; box-shadow: 0 0 16px #ffe687; z-index: 5; }
+

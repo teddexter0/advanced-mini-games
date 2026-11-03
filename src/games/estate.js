@@ -1,4 +1,4 @@
-import {estateCast} from '../data/estate-cast.js';
+import {estateCast,tileLore,specialLore} from '../data/estate-cast.js';
 import {castPicker} from '../portraits.js';
 import {el,button,layout,random,store,session} from '../core.js';
 import {assets} from '../assets.js';
@@ -10,14 +10,30 @@ export function estate(root,skin='heroes'){
   const{stage,side}=layout(root,'Local pass-and-play for 2–4 people. Roll, buy or auction, collect rent, complete colour sets, build evenly, trade, mortgage, and manage jail. Click a tile to inspect it. No AI opponents. Saved automatically in this browser.');
   const key='estate.'+skin;let s=store.get(key,null);if(!s||s.version!==1||s.skin!==skin||s.tiles?.length!==40||!Array.isArray(s.players)||s.players.length<2||s.players.length>4||!s.players.every(p=>p&&Number.isFinite(p.cash)&&Number.isInteger(p.pos)&&p.pos>=0&&p.pos<40))s=newEstate(2,skin);prepareEstate(s);let selected=0,auction=null,rolling=false;
   const setup=el('div',{class:'controls'}),count=el('select',{'aria-label':'Player count'},[2,3,4].map(n=>el('option',{value:n,text:n+' players'}))),board=el('div',{class:'monopoly-wrap'}),players=el('div',{class:'player-list'}),status=el('p',{class:'status','aria-live':'polite'}),actions=el('div',{class:'controls'}),property=el('div',{class:'property-panel'}),event=el('img',{class:'event-image',alt:'Artwork for the most recent board event'}),log=el('div',{class:'log'}),trade=el('details'),feedback=el('p',{class:'hint'});
+  const avatars=['◆','★','♞','⚡','☄','♛'];
+  const avatarFor=(player,index)=>avatars[player.avatar]||avatars[index];
+  const card=el('section',{class:'estate-card',role:'region','aria-label':'Tile dossier',hidden:''});
+  card.hidden=true;
+  const cardBody=el('div');
+  card.append(button('Close dossier',()=>{card.hidden=true;}),cardBody);
   stage.classList.add('estate-stage');
   const viewport=el('div',{class:'estate-viewport',tabindex:'0','aria-label':'Scrollable property board'},[board]);
   const follow=el('button',{class:'estate-follow',text:'Overview','aria-pressed':'false'});
   let overview=false, cameraFrame;
+  const tileNodes=[];
+  const movingToken=el('span',{class:'estate-moving-token','aria-hidden':'true'});
+  const position=(index)=>{const angle=index/40*Math.PI*2-Math.PI/2;return [50+43*Math.cos(angle),50+44*Math.sin(angle)];};
+  function showStep(index){
+    const [x,y]=position(index);
+    movingToken.style.left=x+'%';
+    movingToken.style.top=y+'%';
+    tileNodes[index]?.classList.add('route-lit');
+    focusTile(index);
+  }
   function focusTile(index,animate=true){
     cancelAnimationFrame(cameraFrame);
     cameraFrame=requestAnimationFrame(()=>{
-      const tile=board.children[index+(skin==='heroes'?2:1)];
+      const tile=tileNodes[index];
       if(overview||!tile||!viewport.scrollTo)return;
       const view=viewport.getBoundingClientRect(),cell=tile.getBoundingClientRect();
       viewport.scrollTo({
@@ -43,7 +59,7 @@ export function estate(root,skin='heroes'){
   scope.cleanup(()=>controller.abort());
   const announce=(message)=>{feedback.textContent=message;};
   function mutate(fn){const ok=fn();if(ok===false)announce('Action unavailable: check cash, ownership, turn phase, and even building across the set.');else announce('');render();}
-  function reset(){s=newEstate(Number(count.value),skin);s.players.forEach(p=>p.cash=startingCash);auction=null;selected=0;render();focusTile(0,false);}let resetArmed=false;const resetButton=button('New table',()=>{if(!resetArmed){resetArmed=true;resetButton.textContent='Confirm new table';return;}resetArmed=false;resetButton.textContent='New table';reset();});setup.append(count,resetButton,follow,dice);stage.append(setup,viewport,status,actions,feedback);side.append(players,property,event,el('h4',{text:'Table log'}),log,trade);
+  function reset(){s=newEstate(Number(count.value),skin);s.players.forEach(p=>p.cash=startingCash);auction=null;selected=0;render();focusTile(0,false);}let resetArmed=false;const resetButton=button('New table',()=>{if(!resetArmed){resetArmed=true;resetButton.textContent='Confirm new table';return;}resetArmed=false;resetButton.textContent='New table';reset();});setup.append(count,resetButton,follow,dice);stage.append(setup,viewport,status,actions,feedback,card);side.append(players,property,event,el('h4',{text:'Table log'}),log,trade);
   function auctionStart(){let tile;if(s.phase==='end'&&s.auctionQueue.length){tile=s.auctionQueue.shift();s.pending=tile;}else if(s.phase==='purchase')tile=s.pending;else return;const bidder=s.players.findIndex((p,i)=>!p.out&&i>=s.turn);auction={tile,price:0,leader:null,turn:bidder<0?s.players.findIndex(p=>!p.out):bidder,passed:[]};s.phase='auction';render();}
   function auctionAdvance(){const active=s.players.map((p,i)=>!p.out&&!auction.passed.includes(i)?i:null).filter(i=>i!==null);
     const challengers=active.filter(i=>i!==auction.leader);
@@ -57,24 +73,31 @@ export function estate(root,skin='heroes'){
     board.replaceChildren();if(skin==='heroes')board.append(el('img',{src:assets.board,alt:'Avengers board centre',class:'monopoly-bg'}));
     board.append(el('div',{class:'monopoly-core'},[el('small',{text:skin==='heroes'?'MCU / DCU':'HOLLYWOOD'}),el('span',{text:skin==='heroes'?'MULTIVERSE':'THE A-LIST'}),el('small',{text:'ESTATE CIRCUIT'})]));
     s.tiles.forEach((tile,i)=>{
-      const angle=i/40*Math.PI*2-Math.PI/2;
+      const [x,y]=position(i);
       const name=photoByTile.get(i);
-      const photo=eventPhotos.find(photo=>photo.tiles.includes(i));
+      const photo=eventPhotos.find(photo=>photo.person===name&&photo.tiles.includes(i));
       const image=portraits.get(name)||photo?.image;
       const cell=el('button',{
         class:'tile'+(selected===i?' selected':'')+(s.players[s.turn].pos===i?' player-focus':''),
-        style:'--tile-color:'+(groupColors[tile.group]||'#cfdfad')+';left:'+(50+43*Math.cos(angle))+'%;top:'+(50+44*Math.sin(angle))+'%',
+        style:'--tile-color:'+(groupColors[tile.group]||'#cfdfad')+';left:'+x+'%;top:'+y+'%',
         title:i+': '+tile.name+(name?' / '+name:''),
         'aria-label':tile.name,
-        onClick:()=>{if(!rolling){selected=i;render();focusTile(i);}}
+        onClick:()=>{if(!rolling){const open=card.hidden||selected!==i;selected=i;render();card.hidden=!open;}}
       },[
         ...(image?[el('img',{src:image,alt:'',class:'estate-portrait'})]:[]),
         el('span',{class:'estate-tile-label',text:tile.name}),
-        el('span',{class:'tokens',text:s.players.map((p,n)=>!p.out&&p.pos===i?String(n+1):'').join(' ')})
+        el('span',{class:'tokens',text:s.players.map((p,n)=>!p.out&&p.pos===i?avatarFor(p,n):'').join(' ')})
       ]);
-      board.append(cell);
+      tileNodes[i]=cell;board.append(cell);
     });
-    players.replaceChildren(...s.players.map((p,i)=>el('div',{class:'player-row'+(i===s.turn?' current':'')},[el('b',{text:`${['●','◆','▲','★'][i]} ${p.name} · $${p.cash}`}),el('div',{text:p.out?'Bankrupt':p.jailed?`Jail · ${p.jail} failed rolls`:`${s.tiles[p.pos].name} · ${s.tiles.filter(t=>t.owner===i).length} deeds`})])));
+    board.append(movingToken);
+    const selectedTile=s.tiles[selected];
+    const featured=photoByTile.get(selected);
+    const lore=tileLore[skin][pictures.indexOf(featured)]??specialLore[selectedTile.type]??'Resolve the effect shown in the table log.';
+    cardBody.replaceChildren(el('small',{text:skin==='heroes'?'MULTIVERSE FILE':'HOLLYWOOD DOSSIER'}),el('h3',{text:selectedTile.name}),el('p',{text:lore}));
+    if(featured)cardBody.append(el('p',{text:'Featured portrait · '+featured}));
+    if(selectedTile.price)cardBody.append(el('p',{text:'Deed $'+selectedTile.price+' · Rent $'+rentFor(s,selectedTile,s.lastDice||7)}));
+    players.replaceChildren(...s.players.map((p,i)=>el('div',{class:'player-row'+(i===s.turn?' current':'')},[el('b',{text:`${avatarFor(p,i)} ${p.name} · $${p.cash}`}),el('div',{text:p.out?'Bankrupt':p.jailed?`Jail · ${p.jail} failed rolls`:`${s.tiles[p.pos].name} · ${s.tiles.filter(t=>t.owner===i).length} deeds`})])));
     status.textContent=s.winner!==null?`${s.players[s.winner].name} wins!`: `${s.players[s.turn].name} · ${s.phase==='roll'?'Roll the dice':s.phase==='purchase'?'Buy or start an auction':s.phase==='debt'?'Raise cash to cover the debt':s.phase==='auction'?'Auction in progress':s.extra?'Doubles: roll again after resolving this turn':'End your turn'}`;
     actions.replaceChildren();if(s.winner===null){
       if(s.phase==='roll'){actions.append(button('Roll dice',roll,true));if(s.players[s.turn].jailed){actions.append(button('Pay $50 bail',()=>mutate(()=>{const p=s.players[s.turn];if(p.cash<50)return false;p.cash-=50;p.jailed=false;p.jail=0;record(s,'Bail paid.');return true;})));if(s.players[s.turn].jailCards.length)actions.append(button('Use jail-free card',()=>mutate(()=>useJailCard(s))));}}
@@ -85,15 +108,20 @@ export function estate(root,skin='heroes'){
     }
     const t=s.tiles[selected];property.replaceChildren(el('h4',{text:`${selected}. ${t.name}`}),el('p',{class:'rules',text:t.price?`Price $${t.price} · Rent $${rentFor(s,t,s.lastDice||7)} · ${t.owner===null?'Bank-owned':s.players[t.owner].name}${t.mortgaged?' · Mortgaged':''}${t.type==='property'?' · Buildings '+t.houses+' · Build $'+t.buildCost:''}`:t.type==='parking'?'Free parking has no payout.':t.type==='go'?'Collect $200 when passing or landing.':'Follow the landing event.'}));
     if(t.owner===s.turn&&s.winner===null){property.append(button(t.mortgaged?'Redeem mortgage':'Mortgage deed',()=>mutate(()=>mortgageEstate(s,t.id))));if(t.type==='property')property.append(button('Build house / hotel',()=>mutate(()=>buildEstate(s,t.id))),button('Sell building',()=>mutate(()=>buildEstate(s,t.id,true))));}
+    const active=s.players[s.turn];
+    const avatarPicker=el('select',{'aria-label':'Choose avatar for '+active.name},avatars.map((symbol,index)=>el('option',{value:index,text:symbol,...(avatarFor(active,s.turn)===symbol?{selected:''}:{})})));
+    scope.on(avatarPicker,'change',()=>mutate(()=>{active.avatar=Number(avatarPicker.value);}));
+    players.append(avatarPicker);
     const portrait=portraits.get(photoByTile.get(selected));
     if(portrait)property.append(el('img',{class:'event-image',src:portrait,alt:photoByTile.get(selected)}));
-    if(skin==='hollywood'){const photo=allPhotos().find(photo=>photo.tiles.includes(selected));if(photo)property.append(photoFigure(photo));}
+    if(skin==='hollywood'){const photo=eventPhotos.find(photo=>photo.person===photoByTile.get(selected)&&photo.tiles.includes(selected));if(photo)property.append(photoFigure(photo));}
     if(s.event&&assets[s.event]&&skin==='heroes'){event.src=assets[s.event];event.hidden=false;}else event.hidden=true;
     log.replaceChildren(...s.log.slice(0,12).map(text=>el('div',{text})));renderTrade();
   }
   function roll(){
     if(rolling||s.phase!=='roll')return;
     rolling=true;
+    card.hidden=true;
     actions.inert=true;
     setup.inert=true;
     side.inert=true;
@@ -102,15 +130,37 @@ export function estate(root,skin='heroes'){
     const show=(a,b)=>dice.replaceChildren(el('span',{text:faces[a-1]}),el('span',{text:faces[b-1]}));
     const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const finish=()=>{
-      rolling=false;
-      actions.inert=false;
-      setup.inert=false;
-      side.inert=false;
       dice.classList.toggle('rolling',false);
       show(first,second);
       dice.setAttribute('aria-label','Rolled '+first+' and '+second);
-      mutate(()=>{const result=rollEstate(s,first,second);selected=s.players[s.turn].pos;return result;});
-      focusTile(selected);
+      let path=[];
+      const origin=s.players[s.turn].pos;
+      rollEstate(s,first,second,undefined,(start,count)=>{
+        path=Array.from({length:count},(_,i)=>(start+i+1)%40);
+      });
+      selected=s.players[s.turn].pos;
+      store.set(key,s);
+      const complete=()=>{
+        rolling=false;
+        actions.inert=false;
+        setup.inert=false;
+        side.inert=false;
+        movingToken.classList.toggle('moving',false);
+        render();
+        focusTile(selected);
+      };
+      if(reduced||!path.length){complete();return;}
+      if(path.at(-1)!==selected)path.push(selected);
+      card.hidden=true;
+      const marker=tileNodes[origin]?.querySelector('.tokens');
+      if(marker)marker.hidden=true;
+      movingToken.textContent=avatarFor(s.players[s.turn],s.turn);
+      const [x,y]=position(origin);
+      movingToken.style.left=x+'%';
+      movingToken.style.top=y+'%';
+      movingToken.classList.add('moving');
+      path.forEach((index,i)=>scope.timeout(()=>showStep(index),90+i*230));
+      scope.timeout(complete,100+path.length*230);
     };
     if(reduced){finish();return;}
     dice.classList.add('rolling');
