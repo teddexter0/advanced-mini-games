@@ -1,0 +1,36 @@
+.morris{--army-a:#ffad58;--army-b:#76e1f5;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(220px,1fr);gap:clamp(16px,4vw,48px);max-width:880px;margin:auto;padding:clamp(14px,3vw,32px);border-radius:24px;background:radial-gradient(ellipse at 24% 8%,#363352,#181829 65%);color:#fbf7ff;color-scheme:dark}
+.morris[data-colors=rose]{--army-a:#ff87ab;--army-b:#79efb0}
+.morris[data-colors=violet]{--army-a:#c5a5ff;--army-b:#f9d968}
+.morris-stage{text-align:center;min-width:0}
+.morris .morris-kicker{font-size:.72rem;font-weight:800;letter-spacing:.15em;color:#e4cdff;margin:0}
+.morris h3{font-size:clamp(2rem,6vw,3.6rem);line-height:1.1;margin:.15em 0 .3em}
+.morris-board{width:min(100%,420px,48dvh);min-width:min(100%,250px);aspect-ratio:1;margin:auto;position:relative;isolation:isolate;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);border:1px solid #70678a;border-radius:18px;background:linear-gradient(145deg,#34314b,#201f35);box-shadow:inset 0 0 32px #141322}
+.morris-board svg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;stroke:#9b8fb4;stroke-width:2.2;pointer-events:none}
+.morris .morris-board button{display:grid;place-items:center;min-width:0;padding:0;background:none;border:0;border-radius:12px;box-shadow:none;touch-action:manipulation;cursor:default}
+.morris-board button[aria-disabled=false]{cursor:pointer}
+.morris-board button span{display:grid;place-items:center;width:22%;aspect-ratio:1;border:2px solid #c2b5d7;border-radius:50%;background:#2d2b42;transition:scale .15s,background .15s}
+.morris-board button[data-piece="1"] span,.morris-board button[data-piece="2"] span{width:58%;border-color:#fff8;box-shadow:inset 0 -7px 10px #1a162c44,0 5px 12px #121121bb;color:#231a30;font-weight:900}
+.morris-board button[data-piece="1"] span{background:var(--army-a)}
+.morris-board button[data-piece="2"] span{background:var(--army-b)}
+.morris-board button[data-piece="1"] span::after{content:"Ⅰ"}
+.morris-board button[data-piece="2"] span::after{content:"Ⅱ"}
+.morris-board button.target span,.morris-board button[aria-disabled=false]:hover span{scale:1.14;border-color:#fff}
+.morris-board button.target span{background:#ffdf70;border-color:#fff0a0}
+.morris-board button.last span{outline:2px dashed #fff9;outline-offset:3px}
+.morris-board button[aria-pressed=true] span,.morris-board button.mill span{outline:3px solid #fff;outline-offset:4px}
+.morris-board button.mill span{scale:1.12;box-shadow:0 0 24px #ffdb76a0}
+.morris button:focus-visible,.morris select:focus-visible,.morris summary:focus-visible{outline:3px solid #ffdf70;outline-offset:3px}
+.morris .morris-status{min-height:2.5em;margin:12px 0 0;color:#fff3cd;font-weight:800}
+.morris-sidebar{align-self:center;display:grid;gap:12px;text-align:left}
+.morris-sidebar label{display:grid;gap:5px;font-weight:700}
+.morris-sidebar select,.morris .morris-next{width:100%;min-height:44px;border:1px solid #80749a;border-radius:10px;padding:8px 12px;background:#28243c;color:#fff;font:inherit}
+.morris .morris-next{background:#ffce72;color:#201525;font-weight:900;cursor:pointer}
+.morris-score{display:flex;gap:8px}
+.morris-score p{flex:1;margin:0;padding:10px;border:1px solid #6b607f;border-radius:12px;display:flex;gap:6px;justify-content:space-between}
+.morris-score p:first-child{color:var(--army-a)}
+.morris-score p:last-child{color:var(--army-b)}
+.morris-score .active{border-color:currentColor;background:#fff1}
+.morris-sidebar summary{cursor:pointer;font-weight:800}
+.morris-sidebar details p{margin:6px 0 0;line-height:1.5;color:#e2d9ed}
+@media(max-width:620px){.morris{grid-template-columns:1fr;gap:10px}}
+@media(prefers-reduced-motion:reduce){.morris-board button span{transition:none}}

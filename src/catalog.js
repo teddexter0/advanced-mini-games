@@ -1,4 +1,5 @@
 export const games=[
+ {id:'morris',name:'Three Men’s Morris',category:'Tabletop',color:'#bfa6ef',tag:'SOLO / 2 PLAYERS',description:'Place three. Slide smart. Make a mill.',art:'morris'},
  {id:'stickman',name:'Stickman Skyline',category:'Arcade',color:'#91b4d5',tag:'PARKOUR',description:'Double jump. Dash. Own the rooftops.',art:'stickman'},
  {id:'jigsaw',name:'Multiverse Jigsaw',category:'Puzzles',color:'#acbce3',tag:'100–3,000 PIECES',description:'Your MCU/DC images. Real interlocking pieces.',art:'jigsaw'},
  {id:'pac',name:'Pac × Snake',category:'Arcade',color:'#efd479',tag:'MASHUP',description:'A chomper. A snake. One maze.',art:'pac'},
@@ -21,6 +22,7 @@ export const lessonFor={rps:'rps',merge:'merge',tetris:'collision',whale:'physic
 function icon(kind){
  const rect=(x,y,w,h,fill,rx=5)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" stroke="#252b25" stroke-width="2"/>`;
  let drawing='';
+ if(kind==='morris')drawing='<rect x="22" y="9" width="116" height="112" rx="18" fill="#29243d"/><path d="M43 28H117V102H43ZM43 65H117M80 28V102M43 28L117 102M43 102L117 28" fill="none" stroke="#b6a8d2" stroke-width="2"/><circle cx="43" cy="28" r="10" fill="#ffad58"/><circle cx="80" cy="65" r="10" fill="#ffad58"/><circle cx="117" cy="28" r="10" fill="#76e1f5"/><circle cx="43" cy="102" r="10" fill="#76e1f5"/>';
  if(kind==='pac')drawing='<path d="M75 65 L110 38 A44 44 0 1 0 110 92Z" fill="#f7e6a0" stroke="#252b25" stroke-width="3"/><circle cx="72" cy="38" r="4" fill="#252b25"/><circle cx="118" cy="65" r="5" fill="#252b25"/>'+[0,1,2,3].map((n)=>rect(129+n%2*14,39+Math.floor(n/2)*25,16,22,'#688956',4)).join('');
  if(kind==='whale')drawing='<path d="M29 73 Q33 35 85 48 Q119 53 119 81 Q114 111 66 103 Q44 104 29 85 L9 88 L19 66Z" fill="#658da9" stroke="#263f4d" stroke-width="3"/><path d="M107 58 L145 25 L119 76" fill="#f4e9c4" stroke="#263f4d" stroke-width="2"/><circle cx="99" cy="68" r="5" fill="white"/><circle cx="101" cy="68" r="2"/><ellipse cx="83" cy="88" rx="13" ry="7" fill="#456c87"/><circle cx="31" cy="28" r="13" fill="none" stroke="#edaa88" stroke-width="10"/>';
  if(kind==='estate'||kind==='hollywood'){drawing='<ellipse cx="80" cy="71" rx="65" ry="48" fill="none" stroke="#263a30" stroke-width="17"/><ellipse cx="80" cy="71" rx="65" ry="48" fill="none" stroke="#e2e8c6" stroke-width="12" stroke-dasharray="15 5"/>';drawing+=kind==='hollywood'?'<path d="M80 35 L89 58 L115 58 L94 75 L102 100 L80 85 L58 100 L66 75 L45 58 L71 58Z" fill="#f0cf70" stroke="#29362c" stroke-width="3"/>':'<path d="M55 92 L55 58 L80 35 L105 58 L105 92Z" fill="#e9eccf" stroke="#29362c" stroke-width="3"/><path d="M71 92 V71 H88 V92" fill="#f0904f" stroke="#29362c" stroke-width="2"/>';}

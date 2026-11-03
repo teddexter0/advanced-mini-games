@@ -55,7 +55,7 @@ async function openGame(game){closeGame();const token=++generation;selectedGame=
   if(['merge','sudoku','pop','unblock'].includes(game.id)){const mod=await import('./games/puzzles.js');mount=mod[game.id];}
   else if(['rps','mole','hop'].includes(game.id)){const mod=await import('./games/quick.js');mount=mod[game.id];}
   else if(['estate','hollywood'].includes(game.id)){const mod=await import('./games/estate.js');mount=root=>mod.estate(root,game.id==='estate'?'heroes':'hollywood');}
-  else if(['jigsaw','stickman'].includes(game.id)){const mod=await import('./games/'+game.id+'.js');mount=mod[game.id];}
+  else if(['jigsaw','stickman','morris'].includes(game.id)){const mod=await import('./games/'+game.id+'.js');mount=mod[game.id];}
   else{const mod=await import('./games/arcade.js');mount={tetris:mod.tetris,pinball:mod.pinball,whale:root=>mod.flight(root,true),flappy:root=>mod.flight(root),pac:root=>mod.snake(root,true),snake:root=>mod.snake(root)}[game.id];}
   if(token!==generation)return;content.replaceChildren();cleanup=mount(content)||(()=>{});content.querySelector('canvas')?.focus();store.set('lastGame',game.id);
  }catch(error){if(token!==generation)return;content.replaceChildren(el('p',{class:'notice',text:'Could not start the game: '+error.message}));console.error(error);}
@@ -103,6 +103,7 @@ async function route(){closeGame();viewCleanup();viewCleanup=()=>{};app.replaceC
   await openGame(game);
   const bench=$('#game-content .build-workbench');if(bench)bench.open=true;
  }
+ if(hash==='play/morris')await openGame(games.find(game=>game.id==='morris'));
  if(site.game&&!hash){const game=games.find(g=>g.id===site.game);if(game)await openGame(game);}
  if(hash==='collection')document.getElementById('collection')?.scrollIntoView();else window.scrollTo(0,0);
 }
