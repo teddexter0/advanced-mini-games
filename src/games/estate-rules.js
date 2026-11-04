@@ -47,6 +47,7 @@ export function land(s,cardIndex){prepareEstate(s);const p=s.players[s.turn],t=s
     if(!deck.length)deck.push(...shuffledDeck().filter(i=>!headlines[i].jailFree||!s.players.some(p=>p.jailCards.includes(deckType))));
     const index=cardIndex===undefined?deck.shift():cardIndex%headlines.length,card=headlines[index];
     if(cardIndex===undefined&&!card.jailFree)deck.push(index);
+    s.drawnCard={tile:t.id,text:card.text};
     record(s,card.text);
     if(card.jailFree)p.jailCards.push(deckType);
     else if(card.repairs){const owned=s.tiles.filter(t=>t.owner===s.turn),amount=owned.reduce((sum,t)=>sum+(t.houses===5?100:(t.houses||0)*25),0);if(amount)transfer(s,amount);}
@@ -74,7 +75,7 @@ export function mortgageEstate(s,id){const t=s.tiles[id],p=s.players[s.turn];if(
   if(t.type==='property'&&s.tiles.some(x=>x.type==='property'&&x.group===t.group&&x.houses))return false;
   if(t.mortgaged){const cost=Math.ceil(t.price/2*1.1);if(p.cash<cost)return false;p.cash-=cost;t.mortgaged=false;record(s,`Redeemed ${t.name} for $${cost}.`);}else{p.cash+=t.price/2;t.mortgaged=true;record(s,`Mortgaged ${t.name}.`,'tax');}return true;
 }
-export function settleDebt(s){if(s.phase!=='debt'||s.players[s.turn].cash<0)return false;s.phase='end';s.debtTo=null;s.multiDebt=null;if(s.pending&&typeof s.pending==='object'){const pending=s.pending;s.pending=null;advance(s,pending.move);land(s,pending.card);}return true;}
+export function settleDebt(s,onAdvance){if(s.phase!=='debt'||s.players[s.turn].cash<0)return false;s.phase='end';s.debtTo=null;s.multiDebt=null;if(s.pending&&typeof s.pending==='object'){const pending=s.pending;s.pending=null;const origin=s.players[s.turn].pos;advance(s,pending.move);onAdvance?.(origin,pending.move);land(s,pending.card);}return true;}
 export function bankruptEstate(s){if(s.phase!=='debt')return false;const p=s.players[s.turn],creditor=s.debtTo;p.out=true; // Creditor already received the booked payment; reverse its unpaid part.
   prepareEstate(s);
   if(creditor!==null)s.players[creditor].cash+=p.cash;
